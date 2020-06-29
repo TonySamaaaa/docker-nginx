@@ -1,4 +1,8 @@
-FROM alpine AS build-deps
+FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu
+
+FROM arm64v8/alpine AS build-deps
+
+COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin
 
 LABEL maintainer="Tony <i@tony.moe>"
 
@@ -99,8 +103,9 @@ RUN apk add --no-cache --virtual .build-deps \
   && strip build-deps/usr/sbin/nginx \
   && rm -rf build-deps/etc/nginx/html
 
-FROM alpine
+FROM arm64v8/alpine
 
+COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin
 COPY --from=build-deps /usr/src/build-deps /
 
 RUN addgroup -g 82 -S nginx \
