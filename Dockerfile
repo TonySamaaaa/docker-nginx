@@ -1,10 +1,10 @@
-FROM alpine
+FROM alpine AS build-deps
 
 LABEL maintainer="Tony <i@tony.moe>"
 
-ENV NGINX_VERSION 1.17.9
+ENV NGINX_VERSION 1.18.0
 ENV ZLIB_VERSION 1.2.11
-ENV OPENSSL_VERSION 1.1.1e
+ENV OPENSSL_VERSION 1.1.1g
 ENV HEADERS_MORE_NGINX_MODULE_VERSION 0.33
 
 RUN apk add --no-cache --virtual .build-deps \
@@ -18,8 +18,6 @@ RUN apk add --no-cache --virtual .build-deps \
     linux-headers \
     make \
     pcre-dev \
-  && addgroup -g 82 -S nginx \
-  && adduser -u 82 -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
   \
   && mkdir /usr/src \
   && cd /usr/src \
@@ -95,10 +93,18 @@ RUN apk add --no-cache --virtual .build-deps \
     --add-module=../headers-more-nginx-module \
     --add-module=../ngx_brotli \
   && make \
-  && make install \
+  && make install DESTDIR=/usr/src/build-deps \
   \
-  && strip /usr/sbin/nginx \
-  && rm -rf /usr/src /etc/nginx/html \
+  && cd .. \
+  && strip build-deps/usr/sbin/nginx \
+  && rm -rf build-deps/etc/nginx/html
+
+FROM alpine
+
+COPY --from=build-deps /usr/src/build-deps /
+
+RUN addgroup -g 82 -S nginx \
+  && adduser -u 82 -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
   \
   && runDeps=$( \
     scanelf --needed --nobanner --format '%n#p' /usr/sbin/nginx \
@@ -107,7 +113,6 @@ RUN apk add --no-cache --virtual .build-deps \
       | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
   ) \
   && apk add --no-cache --virtual .nginx-rundeps $runDeps \
-  && apk del .build-deps \
   \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log
@@ -116,4 +121,5 @@ COPY nginx /etc/nginx
 
 EXPOSE 80 443
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["nginx"]
+CMD ["-g", "daemon off;"]
