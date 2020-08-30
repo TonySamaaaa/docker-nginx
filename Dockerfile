@@ -119,6 +119,7 @@ RUN addgroup -g 82 -S nginx \
 
 COPY nginx /etc/nginx
 
+VOLUME ["/etc/nginx", "/data/wwwroot", "/data/wwwlogs"]
 EXPOSE 80 443
 
 ENTRYPOINT ["nginx"]
