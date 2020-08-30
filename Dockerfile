@@ -1,5 +1,4 @@
 FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu
-
 FROM arm64v8/alpine AS build-deps
 
 COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin
@@ -124,6 +123,7 @@ RUN addgroup -g 82 -S nginx \
 
 COPY nginx /etc/nginx
 
+VOLUME ["/etc/nginx", "/data/wwwroot", "/data/wwwlogs"]
 EXPOSE 80 443
 
 ENTRYPOINT ["nginx"]
