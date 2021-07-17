@@ -103,8 +103,8 @@ FROM alpine
 
 COPY --from=build-deps /usr/src/build-deps /
 
-RUN addgroup -g 82 -S nginx \
-  && adduser -u 82 -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
+RUN addgroup -S nginx \
+  && adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
   \
   && runDeps=$( \
     scanelf --needed --nobanner --format '%n#p' /usr/sbin/nginx \
