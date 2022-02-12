@@ -2,9 +2,9 @@ FROM alpine AS build-deps
 
 LABEL maintainer="Tony <i@tony.moe>"
 
-ENV NGINX_VERSION 1.18.0
+ENV NGINX_VERSION 1.20.2
 ENV ZLIB_VERSION 1.2.11
-ENV OPENSSL_VERSION 1.1.1g
+ENV OPENSSL_VERSION 1.1.1m
 ENV HEADERS_MORE_NGINX_MODULE_VERSION 0.33
 
 RUN apk add --no-cache --virtual .build-deps \
