@@ -2,10 +2,10 @@ FROM alpine AS build-deps
 
 LABEL maintainer="Tony <i@tony.moe>"
 
-ENV NGINX_VERSION 1.20.2
-ENV ZLIB_VERSION 1.2.11
-ENV OPENSSL_VERSION 1.1.1m
-ENV HEADERS_MORE_NGINX_MODULE_VERSION 0.33
+ENV NGINX_VERSION 1.24.0
+ENV ZLIB_VERSION 1.3
+ENV OPENSSL_VERSION 1.1.1w
+ENV HEADERS_MORE_NGINX_MODULE_VERSION 0.34
 
 RUN apk add --no-cache --virtual .build-deps \
     curl \
@@ -101,7 +101,8 @@ RUN apk add --no-cache --virtual .build-deps \
 
 FROM alpine
 
-COPY --from=build-deps /usr/src/build-deps /
+COPY --from=build-deps /usr/src/build-deps/etc /etc
+COPY --from=build-deps /usr/src/build-deps/usr /usr
 
 RUN addgroup -S nginx \
   && adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
@@ -114,6 +115,7 @@ RUN addgroup -S nginx \
   ) \
   && apk add --no-cache --virtual .nginx-rundeps $runDeps \
   \
+  && mkdir -p /var/log/nginx \
   && ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log
 
